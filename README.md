@@ -1,3 +1,35 @@
+# FCE Ultra GX - DS3 Mod #
+This mod let's you play your NES/FC/FDS/Pegasus games with a wired Dualshock3 Controller.
+It works only in-game for now, you still need a Wiimote/GC Controller to navigate the emulators menus.
+
+How to use:
+1. Start up FCE Ultra GX - DS3 Mod
+2. Start a game with your Wiimote/GC Controller/etc
+3. Press the PS button on your DS3 and connect it to your Wii with a USB cable
+4. It should connect, one led on the controller should light up
+5. Done, you can play now on a DS3 Controller
+
+Button Mappings:
+| **Dualshock 3**   | **NES Controller** |
+| ------------- | -------------  |
+| D-Pad         | D-Pad          |
+| Left Analog   | D-Pad          |
+| Start         | Start          |
+| Select        | Select         |
+| Cross         | A              |
+| Square        | B              |
+| Triangle      | Turbo A        |
+| Circle        | Turbo B        |
+
+Addional button combos:
+| **Dualshock 3**   | **Action** |
+| ------------- | -------------  |
+| PS + R1 + Triangle| Map DS3 to Player 1 |
+| PS + R1 + Circle  | Map DS3 to Player 2 |
+| PS + R1 + Cross   | Map DS3 to Player 3 |
+| PS + R1 + Square  | Map DS3 to Player 4 |
+
+Orig readme:
 # FCE Ultra GX
 https://github.com/dborth/fceugx (Under GPL License)
  
