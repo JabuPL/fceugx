@@ -7,8 +7,13 @@
  * pad.cpp
  *
  * Controller input
- ****************************************************************************/
-
+ *
+ * Wired DS3 Support added by Jabu
+ * using the older version of libsicksaxis by xerpi
+ * (cuz I couldn't get the latest version to work)
+ * Based on code borrowed from https://github.com/niuus/Snes9xRX
+ ***************************************************************************/
+ 
 #include <gccore.h>
 #include <ogc/lwp_watchdog.h>
 
@@ -24,6 +29,17 @@
 #include "gui/gui.h"
 
 #define ANALOG_SENSITIVITY 30
+
+//DS3
+#ifdef HW_RVL
+ extern "C"{
+#include "sicksaxis.h"
+}
+static ss_instance_t sicksaxis;
+int ds3chan = 0;
+#define SICKSAXIS_DEADZONE 115				  
+#endif
+//
 
 int rumbleRequest[4] = {0,0,0,0};
 int playerMapping[4] = {0,1,2,3};
@@ -233,6 +249,27 @@ UpdatePads()
 	#endif
 	
 	PAD_ScanPads();
+	
+	//DS3
+	#ifdef HW_RVL
+	u16 buttonsHeld = WPAD_ButtonsHeld(0);
+	if(sicksaxis.connected)
+	{
+		if(buttonsHeld & WPAD_BUTTON_1  && buttonsHeld & WPAD_BUTTON_2)
+		{
+			ss_close(&sicksaxis);
+		}
+	}
+	else
+	{
+			if(ss_open(&sicksaxis) > 0)
+			{
+				ss_set_led(&sicksaxis, 1);
+				ss_start_reading(&sicksaxis);
+			}
+	}
+	#endif		 
+	//
 
 	for(int i=3; i >= 0; i--)
 	{
@@ -269,6 +306,13 @@ void
 SetupPads()
 {
 	PAD_Init();
+	
+	//DS3
+	#ifdef HW_RVL
+	ss_init();
+	if(ss_open(&sicksaxis) > 0) ss_start_reading(&sicksaxis);
+	#endif
+	//
 
 	#ifdef HW_RVL
 	// read wiimote accelerometer and IR data
@@ -449,6 +493,48 @@ static unsigned char DecodeJoy(unsigned short chan)
 	s16 wiidrc_ax = userInput[chan].wiidrcdata.stickX;
 	s16 wiidrc_ay = userInput[chan].wiidrcdata.stickY;
 	u32 wiidrcp = userInput[chan].wiidrcdata.btns_h;
+	#endif
+
+	//DS3
+	#ifdef HW_RVL
+	if(sicksaxis.connected )
+	{
+		//zmiana portu NES
+		if(sicksaxis.gamepad.buttons.PSB &&  sicksaxis.gamepad.buttons.R1 && sicksaxis.gamepad.buttons.triangle) ds3chan = 0;
+		if(sicksaxis.gamepad.buttons.PSB &&  sicksaxis.gamepad.buttons.R1 && sicksaxis.gamepad.buttons.circle) ds3chan = 1;
+		if(sicksaxis.gamepad.buttons.PSB &&  sicksaxis.gamepad.buttons.R1 && sicksaxis.gamepad.buttons.cross) ds3chan = 2;
+		if(sicksaxis.gamepad.buttons.PSB &&  sicksaxis.gamepad.buttons.R1 && sicksaxis.gamepad.buttons.square) ds3chan = 3;
+		
+		if(chan == ds3chan){
+			int8_t aX = sicksaxis.gamepad.leftAnalog.x - 128;
+			int8_t aY = sicksaxis.gamepad.leftAnalog.y - 128;
+			
+			uint8_t up    = sicksaxis.gamepad.buttons.up    ||  (aY < -SICKSAXIS_DEADZONE);
+			uint8_t down  = sicksaxis.gamepad.buttons.down  ||  (aY > SICKSAXIS_DEADZONE);
+			uint8_t right = sicksaxis.gamepad.buttons.right ||  (aX > SICKSAXIS_DEADZONE);
+			uint8_t left  = sicksaxis.gamepad.buttons.left  ||  (aX < -SICKSAXIS_DEADZONE);
+
+			jp |= up    ? PAD_BUTTON_UP    : 0;
+			jp |= down  ? PAD_BUTTON_DOWN  : 0;
+			jp |= right ? PAD_BUTTON_RIGHT : 0;
+			jp |= left  ? PAD_BUTTON_LEFT  : 0;
+
+			//obrocilem przyciski aby byly jak w mario na super nintendo
+			jp |= sicksaxis.gamepad.buttons.cross   ? PAD_BUTTON_A : 0;
+			jp |= sicksaxis.gamepad.buttons.square    ? PAD_BUTTON_B : 0;
+			jp |= sicksaxis.gamepad.buttons.circle ? PAD_BUTTON_X : 0;
+			jp |= sicksaxis.gamepad.buttons.triangle   ? PAD_BUTTON_Y : 0;
+
+			jp |= sicksaxis.gamepad.buttons.L1 ? PAD_TRIGGER_L : 0;
+			jp |= sicksaxis.gamepad.buttons.R1 ? PAD_TRIGGER_R : 0;
+			
+			jp |= sicksaxis.gamepad.buttons.select ? PAD_TRIGGER_Z : 0;
+			jp |= sicksaxis.gamepad.buttons.start ? PAD_BUTTON_START : 0;
+
+			jp |= sicksaxis.gamepad.buttons.L2 ? PAD_TRIGGER_L : 0;
+			jp |= sicksaxis.gamepad.buttons.R2 ? PAD_TRIGGER_R : 0;
+		}
+	}
 	#endif
 
 	/***
