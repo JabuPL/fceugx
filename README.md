@@ -18,8 +18,8 @@ Button Mappings:
 | Select        | Select         |
 | Cross         | A              |
 | Square        | B              |
-| Triangle      | Turbo A        |
-| Circle        | Turbo B        |
+| Circle        | Turbo A        |
+| Triangle      | Turbo B        |
 
 Addional button combos:
 | **Dualshock 3**   | **Action** |
